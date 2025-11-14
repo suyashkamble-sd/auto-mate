@@ -10,16 +10,16 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException
 from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.support import expected_conditions as EC
-# from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 import time
 import random
 import os
 import json
-# from pdb import set_trace as st
+from pdb import set_trace as st
+
 
 appState = {
             "recentDestinations":
@@ -47,7 +47,7 @@ class HumanWebElement(WebElement):
         - error_rate: Probability of "mistake" (backspace + re-type char).
         - avg_delay: Average ms between keys (total time ~ len(text) * avg_delay * 2 for realism).
         """
-        # st()
+        
         actions = ActionChains(self._parent)  # Parent is driver
         actions.click(self).perform()  # Focus first
         time.sleep(random.uniform(0.9, 1.5))  # Initial pause
@@ -90,8 +90,9 @@ class chromebrowser(webdriver.Chrome):
                      before_find=None,
                      after_find=None,
                      on_failure=None,
+                     chromedriver_path=None,
                      *args, **kwargs):
-
+            st()
             # Set default download path if not provided
             self.downloadLocation = os.path.abspath(downloadLocation or os.path.join(os.getcwd(), "downloads"))
             os.makedirs(self.downloadLocation, exist_ok=True)
@@ -100,7 +101,8 @@ class chromebrowser(webdriver.Chrome):
             self.before_find = before_find or (lambda by, value: None)
             self.after_find = after_find or (lambda by, value, result: None)
             self.on_failure = on_failure or (lambda by, value, exc: None)
-            self.chromeDriverPath = os.path.dirname(os.path.abspath(__file__))
+            self.chromeDriverPath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'drivers')
+            os.makedirs(self.chromeDriverPath, exist_ok=True)
             # Chrome options setup
             self.chrome_options = Options()
 
@@ -116,19 +118,25 @@ class chromebrowser(webdriver.Chrome):
             self.chrome_options.add_argument('--kiosk-printing')
             self.chrome_options.add_argument('--disable-gpu')
             self.chrome_options.add_argument('--disable-blink-features=AutomationControlled')
-            self.service = Service(
-                executable_path=os.path.join(self.chromeDriverPath,"chromedriver.exe")
-            )
+            # self.service = Service(
+            #     executable_path=os.path.join(self.chromeDriverPath,"chromedriver.exe")
+            # )
 
             if self.use_proxy:
                 proxy = "http://your-proxy-server:port"
                 self.chrome_options.add_argument(f'--proxy-server={proxy}')
 
-            # Use provided service or default to ChromeDriverManager
-            if service is None:
-                from webdriver_manager.chrome import ChromeDriverManager
-                service = Service(ChromeDriverManager().install())
-            # self.driver = webdriver.Chrome(os.path.join(self.chromeDriverPath, 'chromedriver'),options=self.chrome_options, *args, **kwargs)
+            # # Use provided service or default to ChromeDriverManager
+            # if not self.service:
+            #     if chromedriver_path and os.path.exists(chromedriver_path):
+            #         # Use custom path
+            #         service = Service(chromedriver_path)
+            #     else:
+            #         # Auto-manage driver
+            
+            # self.service = Service(ChromeDriverManager(path=self.chromeDriverPath).install())
+            self.service = Service(ChromeDriverManager().install())
+                
             super().__init__(service=self.service, options=self.chrome_options, *args, **kwargs)
 
     def _execute_find(self, by, value, timeout=20, retry_count=3, single=True):

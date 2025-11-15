@@ -5,6 +5,8 @@ Learning git side by side.
 
 🚀 Features
 
+- Undetected chromedriver implementation along with following features.
+
 🔧 Automatic Driver Installation
   - Seamless setup using webdriver_manager.
   - No manual downloads or path setup required.

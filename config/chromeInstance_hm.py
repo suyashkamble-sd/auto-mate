@@ -92,7 +92,7 @@ class chromebrowser(webdriver.Chrome):
                      on_failure=None,
                      chromedriver_path=None,
                      *args, **kwargs):
-            st()
+            # st()
             # Set default download path if not provided
             self.downloadLocation = os.path.abspath(downloadLocation or os.path.join(os.getcwd(), "downloads"))
             os.makedirs(self.downloadLocation, exist_ok=True)
